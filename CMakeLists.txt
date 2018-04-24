@@ -3,6 +3,8 @@ project(bgfx)
 
 if(APPLE)
     include_directories("bx/include/compat/osx")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    include_directories("bx/include/compat/freebsd")
 endif()
 
 # -------------------- 3rd party -----------------------
@@ -111,7 +113,7 @@ if(APPLE)
     list(APPEND OPENGL_LIBRARIES "${COCOA_LIBRARY}" "${METAL_LIBRARY}" "${QUARTZ_LIBRARY}")
 else()
     if(NOT ANDROID)
-        set(OPENGL_LIBRARIES "GL")
+        find_package(OpenGL REQUIRED)
     endif()
 endif()
 
@@ -123,14 +125,9 @@ elseif(UNIX)
         set(DL dl)
     endif()
 
-    find_library(X11_LIBRARY X11)
-    if(NOT X11_LIBRARY)
-        message(FATAL_ERROR "Could not find X11 library")
-    else()
-        message(STATUS "Found X11 library: ${X11_LIBRARY}")
-    endif()
+    find_package(X11 REQUIRED)
 
-    target_link_libraries(bgfx ${X11_LIBRARY} ${OPENGL_LIBRARIES} pthread ${DL})
+    target_link_libraries(bgfx ${X11_LIBRARIES} ${OPENGL_LIBRARIES} pthread ${DL})
     target_link_libraries(bx pthread ${DL})
 endif()
 
@@ -144,6 +141,8 @@ target_link_libraries(bgfx bgfx3rdParty bx)
 if(APPLE)
     target_include_directories(bgfx PRIVATE ${MALLOC_INCLUDE_DIR})
 endif()
+
+target_include_directories(bgfx PRIVATE ${OPENGL_INCLUDE_DIR})
 
 # ------------------ Common library ----------------------
 file(GLOB COMMON_SRC
@@ -170,6 +169,8 @@ target_include_directories(bgfx_common PUBLIC bgfx/examples)
 
 if(APPLE)
     target_include_directories(bgfx_common PRIVATE ${MALLOC_INCLUDE_DIR})
+elseif(UNIX)
+    target_include_directories(bgfx_common PRIVATE ${X11_INCLUDE_DIR}) # entry_x11.cpp
 endif()
 
 target_compile_definitions(bgfx PUBLIC BGFX_CONFIG_DEBUG=${BGFX_DEBUG})
