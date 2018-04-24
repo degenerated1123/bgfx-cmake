@@ -120,15 +120,10 @@ endif()
 if(ANDROID)
     target_link_libraries(bgfx log dl)
 elseif(UNIX)
-    set(DL "")
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        set(DL dl)
-    endif()
-
     find_package(X11 REQUIRED)
 
-    target_link_libraries(bgfx ${X11_LIBRARIES} ${OPENGL_LIBRARIES} pthread ${DL})
-    target_link_libraries(bx pthread ${DL})
+    target_link_libraries(bgfx ${X11_LIBRARIES} ${OPENGL_LIBRARIES} pthread ${CMAKE_DL_LIBS})
+    target_link_libraries(bx pthread ${CMAKE_DL_LIBS})
 endif()
 
 target_include_directories(bx PUBLIC bx/include)
